@@ -37,8 +37,9 @@ if __name__ == '__main__':
     print('Deserializing simulation...')
     [context, integrator, system, state] = deserialize_simulation('serialized/abl-imatinib')
     print('System contains %d atoms.' % system.getNumParticles())
-    print('Using platform "%s".' % context.getPlatform().getName())
-    
+    print('Using platform "%s".' % context.getPlatform().getName())    
+    print('Initial potential energy is %.3f kcal/mol' % (context.getState(getEnergy=True).getPotentialEnergy() / unit.kilocalories_per_mole))
+
     # Warm up the integrator to compile kernels, etc
     print('Warming up integrator to trigger kernel compilation...')
     integrator.step(10)
@@ -54,3 +55,4 @@ if __name__ == '__main__':
     simulated_time = nsteps * timestep
     performance = (simulated_time / elapsed_time)
     print('completed %8d steps in %8.3f s : performance is %8.3f ns/day' % (nsteps, elapsed_time / unit.seconds, performance / (unit.nanoseconds/unit.day)))
+    print('Final potential energy is %.3f kcal/mol' % (context.getState(getEnergy=True).getPotentialEnergy() / unit.kilocalories_per_mole))
