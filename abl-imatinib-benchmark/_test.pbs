@@ -1,0 +1,22 @@
+#!/bin/bash
+# File name: _test.pbs
+#PBS -A CSC230
+#PBS -l walltime=00:10:00
+#PBS -l nodes=1
+
+module load python_anaconda
+module load cudatoolkit
+export PATH=/ccs/proj/csc230/mskcc/miniconda/bin:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/ccs/proj/csc230/mskcc/miniconda/lib
+export PYTHONPATH=$PYTHONPATH:/ccs/proj/csc230/mskcc/miniconda/lib/python2.7/site-packages/
+PYTHONPATH=$PYTHONPATH:/sw/xk6/python_anaconda/2.3.0/sles11.3_gnu4.8.2/lib/python2.7/site-packages/
+export OPENMM_CUDA_COMPILER=/opt/nvidia/cudatoolkit7.5/7.5.18-1.0502.10743.2.1/bin/nvcc
+
+source activate venv
+
+cd /lustre/atlas/proj-shared/csc230/mskcc/MSKCC/abl-imatinib-benchmark
+aprun -n1 python -m simtk.testInstallation
+
+aprun -n1 python benchmark.py
+
+
