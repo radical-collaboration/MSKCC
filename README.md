@@ -8,17 +8,17 @@ This repository is curated by members of the RADICAL team at Rutgers University 
 
 ## Running OpenMM--7.2 benchmarks against CUDA/7.5 on Titan 
 
-wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-bash miniconda.sh -b -p /ccs/proj/<project_id>/miniconda2
-conda create --name venv
-conda config --add channels omnia --add channels conda-forge
-conda install -c omnia/label/dev --yes openmm-cuda75
+* `wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh`
+* `bash miniconda.sh -b -p /ccs/proj/<project_id>/miniconda2`
+* `conda create --name venv`
+* `conda config --add channels omnia --add channels conda-forge`
+* `conda install -c omnia/label/dev --yes openmm-cuda75`
 
-qsub -I -A <project_id> -l nodes=1,walltime=00:30:00 -q debug
+* `qsub -I -A <project_id> -l nodes=1,walltime=00:30:00 -q debug`
 
-module load python_anaconda
-module load cudatoolkit
-source activate venv
+`module load python_anaconda`
+`module load cudatoolkit`
+`source activate venv`
 
 export PATH=/ccs/proj/<project_id>/mskcc/miniconda/bin:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/ccs/proj/<project_id>/mskcc/miniconda/lib
