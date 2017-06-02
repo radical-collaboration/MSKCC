@@ -16,14 +16,14 @@ This repository is curated by members of the RADICAL team at Rutgers University 
 
 * `qsub -I -A <project_id> -l nodes=1,walltime=00:30:00 -q debug`
 
-`module load python_anaconda`
-`module load cudatoolkit`
-`source activate venv`
+* `module load python_anaconda`
+* `module load cudatoolkit`
+* `source activate venv`
 
-export PATH=/ccs/proj/<project_id>/mskcc/miniconda/bin:$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/ccs/proj/<project_id>/mskcc/miniconda/lib
-export PYTHONPATH=$PYTHONPATH:/ccs/proj/<project_id>/mskcc/miniconda/lib/python2.7/site-packages/
-PYTHONPATH=$PYTHONPATH:/sw/xk6/python_anaconda/2.3.0/sles11.3_gnu4.8.2/lib/python2.7/site-packages/
-export OPENMM_CUDA_COMPILER=/opt/nvidia/cudatoolkit7.5/7.5.18-1.0502.10743.2.1/bin/nvcc
+* `export PATH=/ccs/proj/<project_id>/mskcc/miniconda/bin:$PATH`
+* `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/ccs/proj/<project_id>/mskcc/miniconda/lib`
+* `export PYTHONPATH=$PYTHONPATH:/ccs/proj/<project_id>/mskcc/miniconda/lib/python2.7/site-packages/`
+* `PYTHONPATH=$PYTHONPATH:/sw/xk6/python_anaconda/2.3.0/sles11.3_gnu4.8.2/lib/python2.7/site-packages/`
+* `export OPENMM_CUDA_COMPILER=/opt/nvidia/cudatoolkit7.5/7.5.18-1.0502.10743.2.1/bin/nvcc`
 
-aprun -n1 python -m simtk.testInstallation
+* `aprun -n1 python -m simtk.testInstallation`
