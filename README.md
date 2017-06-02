@@ -9,7 +9,7 @@ This repository is curated by members of the RADICAL team at Rutgers University 
 ## Running OpenMM--7.2 benchmarks against CUDA/7.5 on Titan 
 
 * `wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh`
-* `bash miniconda.sh -b -p /ccs/proj/<project_id>/miniconda2`
+* `bash miniconda.sh -b -p /ccs/proj/mskcc/<project_id>/miniconda2`
 * `conda create --name venv`
 * `conda config --add channels omnia --add channels conda-forge`
 * `conda install -c omnia/label/dev --yes openmm-cuda75`
