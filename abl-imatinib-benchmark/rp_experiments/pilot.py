@@ -51,7 +51,7 @@ if __name__ == '__main__':
         # Define an [n]-core local pilot that runs for [x] minutes
         # Here we use a dict to initialize the description object
         pd_init = {
-                'resource'      : "ornl.titan_aprun",
+                'resource'      : "ornl.titan_ortelib",
                 'runtime'       : 15,  # pilot runtime (min)
                 'exit_on_error' : True,
                 'project'       : "CSC230",
