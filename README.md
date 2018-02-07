@@ -35,32 +35,40 @@ export OPENMM_CUDA_COMPILER=/opt/nvidia/cudatoolkit7.5/7.5.18-1.0502.10743.2.1/b
 aprun -n1 python -m simtk.testInstallation
 ```
 
-## Installing YANK on Titan 
+## Installing YANK on Titan within lustre project directory
 
+Note that `$HOME` may not be available on the compute nodes. We will have to figure it out from running
 ```bash
-# Start an interactive test run
-qsub -I -A $PROJECT -l nodes=1,walltime=00:30:00 -q debug
-
 # Set the project accounting name
 export PROJECT="chm126"
 
-# MANUAL STEP: Get the working directory jobs are launched from by recording this directory
-# Note that the directory `aprun` lauches into may be DIFFERENT from $MEMBERWORK
-# If that happens, and we install miniconda in original $MEMBERWORK, libraries will not be found when running yank
+# Start an interactive test run
+qsub -I -A $PROJECT -l nodes=1,walltime=00:30:00 -lgres=atlas1 -q debug
+# Figure out where jobs actually launch
 aprun -n1 pwd
-export MEMBERWORK=<directory from above>
-
-# Install Python 3.x miniconda in shared path $MEMBERWORK/$PROJECT
-cd $MEMBERWORK/$PROJECT
+```
+Use the output of `pwd` to set `$HOME`:
+```bash
+export HOME=/lustre/atlas/scratch/jchodera1/chm126
+```
+Install python
+```bash
+# Go to new home
+cd $HOME
+# Install Python 3.x miniconda 
+# TODO: Should we do this in shared path $MEMBERWORK/$PROJECT instead of new HOME?
 wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
 export MINICONDA3="$MEMBERWORK/$PROJECT/miniconda3"
-bash miniconda3.sh -b -p $MINICONDA3
-export PATH="$MINICONDA3/bin:$PATH"
-conda config --add channels omnia --add channels conda-forge
+aprun -n1 bash miniconda3.sh -b -p miniconda3
+# MANUAL STEP: This path has to be edited based on the PREFIX printed above
+export PATH="/lustre/atlas/scratch/jchodera1/chm126/miniconda3/bin:$PATH"
+aprun -n1 conda config --add channels omnia --add channels conda-forge
+aprun -n1 conda config --add channels omnia/label/dev
 conda update --yes --all
 # Install latest OpenMM from dev channel
-conda install -c omnia/label/dev --yes openmm
+conda install --yes openmm
 # Install yank
+export LD_LIBRARY_PATH=/lustre/atlas/scratch/jchodera1/chm126/miniconda3/lib:$LD_LIBRARY_PATH
 conda install --yes yank
 # Install CUDA toolkit (optional if using OpenCL)
 module load cudatoolkit
