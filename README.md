@@ -114,5 +114,11 @@ aprun -n 16 yank script --yaml=bosutinib.yaml
 ```
 Here's the modified YANK input file:
 ```YAML
+# I've had trouble avoiding a warning that OEQuacPac isn't installed on TITAN even when installed,
+# So let's pre-charge the ligands and just pass through charges if we can.
+#    openeye:
+#      quacpac: am1-bcc
+    antechamber:
+      charge_method: null
 
 ```
