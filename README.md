@@ -64,7 +64,7 @@ wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O min
 export MINICONDA3="$HOME/miniconda3"
 aprun -n1 bash miniconda3.sh -b -p miniconda3
 # Set LD_LIBRARY_PATH because paths are otherwise messed up
-export LD_LIBRARY_PATH=$HOME/miniconda3/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
 # Add path
 # WARNING: This path may need to be edited based on the PREFIX printed above
 export PATH="$MINICONDA3/bin:$PATH"
