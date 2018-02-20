@@ -82,7 +82,8 @@ conda install --no-deps --yes yank
 # MANUAL STEP: Edit parmed installation to reflect this change: https://github.com/ParmEd/ParmEd/pull/957
 # $MINICONDA/lib/python3.6/site-packages/parmed/gromacs/gromacstop.py
 # Install the OpenEye toolkits
-# MANUAL STEP: Make sure you have the OpenEye license installed in $HOME/.openeye
+# MANUAL STEP: Make sure you have the OpenEye license installed in $OE_LICENSE
+export OE_LICENSE="$HOME/oe_license.txt"
 pip install -i https://pypi.anaconda.org/OpenEye/simple OpenEye-toolkits
 # Test YANK
 aprun -n 1 yank selftest
