@@ -64,13 +64,17 @@ aprun -n1 bash miniconda3.sh -b -p miniconda3
 export LD_LIBRARY_PATH=$HOME/miniconda3/lib:$LD_LIBRARY_PATH
 # MANUAL STEP: This path has to be edited based on the PREFIX printed above
 export PATH="/lustre/atlas/scratch/jchodera1/chm126/miniconda3/bin:$PATH"
-aprun -n1 conda config --add channels omnia --add channels conda-forge
-aprun -n1 conda config --add channels omnia/label/dev
+conda config --add channels omnia --add channels conda-forge
+conda config --add channels omnia/label/dev
 conda update --yes --all
 # Install latest OpenMM from dev channel
 conda install --yes openmm
 # Install yank
 conda install --yes yank
+# Remove glib (and things that depend on it), since it breaks `aprun`
+conda remove --yes glib
+# Force reinstall YANK without reinstalling glib
+conda install --no-deps --yes yank
 # Install CUDA toolkit (optional if using OpenCL)
 module load cudatoolkit
 # Launch Python on one process
