@@ -37,6 +37,8 @@ aprun -n1 python -m simtk.testInstallation
 
 ## Installing YANK on Titan within lustre project directory
 
+This installs the latest YANK with the OpenMM 7.2 dev package (which requires CUDA 9.0, so only OpenCL is available)
+
 Note that `$HOME` may not be available on the compute nodes. We will have to figure it out from running
 ```bash
 # Set the project accounting name
@@ -62,8 +64,9 @@ export MINICONDA3="$MEMBERWORK/$PROJECT/miniconda3"
 aprun -n1 bash miniconda3.sh -b -p miniconda3
 # Set LD_LIBRARY_PATH because paths are otherwise messed up
 export LD_LIBRARY_PATH=$HOME/miniconda3/lib:$LD_LIBRARY_PATH
-# MANUAL STEP: This path has to be edited based on the PREFIX printed above
-export PATH="/lustre/atlas/scratch/jchodera1/chm126/miniconda3/bin:$PATH"
+# Add path
+# WARNING: This path may need to be edited based on the PREFIX printed above
+export PATH="$MINICONDA3/miniconda3/bin:$PATH"
 conda config --add channels omnia --add channels conda-forge
 conda config --add channels omnia/label/dev
 conda update --yes --all
@@ -75,8 +78,11 @@ conda install --yes yank
 conda remove --yes glib
 # Force reinstall YANK without reinstalling glib
 conda install --no-deps --yes yank
-# Install CUDA toolkit (optional if using OpenCL)
-module load cudatoolkit
-# Launch Python on one process
-aprun -n1 python -m simtk.testInstallation
+# MANUAL STEP: Edit parmed installation to reflect this change: https://github.com/ParmEd/ParmEd/pull/957
+# $MINICONDA/lib/python3.6/site-packages/parmed/gromacs/gromacstop.py
+# Install the OpenEye toolkits
+# MANUAL STEP: Make sure you have the OpenEye license installed in $HOME/.openeye
+pip install -i https://pypi.anaconda.org/OpenEye/simple OpenEye-toolkits
+# Test YANK
+aprun -n 1 yank selftest
 ```
