@@ -110,7 +110,7 @@ export PATH="$MINICONDA3/bin:$PATH"
 export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
 date
 cd $HOME/kinase-resistance-mutants/hauser-abl-benchmark/input_files
-aprun -n 16 yank script --yaml=bosutinib.yaml
+aprun -n 16 yank script --yaml=imatinib.yaml
 ```
 Here's the modified YANK input file:
 ```YAML
