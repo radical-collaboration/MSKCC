@@ -67,7 +67,7 @@ aprun -n1 bash miniconda3.sh -b -p miniconda3
 export LD_LIBRARY_PATH=$HOME/miniconda3/lib:$LD_LIBRARY_PATH
 # Add path
 # WARNING: This path may need to be edited based on the PREFIX printed above
-export PATH="$MINICONDA3/miniconda3/bin:$PATH"
+export PATH="$MINICONDA3/bin:$PATH"
 conda config --add channels omnia --add channels conda-forge
 conda config --add channels omnia/label/dev
 conda update --yes --all
