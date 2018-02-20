@@ -51,6 +51,7 @@ aprun -n1 pwd
 ```
 Use the output of `pwd` to set `$HOME`:
 ```bash
+# MANUAL STEP: Change the path to the output of your `pwd`
 export HOME=/lustre/atlas/scratch/jchodera1/chm126
 ```
 Install python
