@@ -60,6 +60,8 @@ cd $HOME
 wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
 export MINICONDA3="$MEMBERWORK/$PROJECT/miniconda3"
 aprun -n1 bash miniconda3.sh -b -p miniconda3
+# Set LD_LIBRARY_PATH because paths are otherwise messed up
+export LD_LIBRARY_PATH=$HOME/miniconda3/lib:$LD_LIBRARY_PATH
 # MANUAL STEP: This path has to be edited based on the PREFIX printed above
 export PATH="/lustre/atlas/scratch/jchodera1/chm126/miniconda3/bin:$PATH"
 aprun -n1 conda config --add channels omnia --add channels conda-forge
@@ -68,7 +70,6 @@ conda update --yes --all
 # Install latest OpenMM from dev channel
 conda install --yes openmm
 # Install yank
-export LD_LIBRARY_PATH=/lustre/atlas/scratch/jchodera1/chm126/miniconda3/lib:$LD_LIBRARY_PATH
 conda install --yes yank
 # Install CUDA toolkit (optional if using OpenCL)
 module load cudatoolkit
