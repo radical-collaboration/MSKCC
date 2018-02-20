@@ -53,21 +53,24 @@ Use the output of `pwd` to set `$HOME`:
 ```bash
 # MANUAL STEP: Change the path to the output of your `pwd`
 export HOME=/lustre/atlas/scratch/jchodera1/chm126
+cd $HOME
+# Other environment variables we will need
+export MINICONDA3="$HOME/miniconda3"
+export PATH="$MINICONDA3/bin:$PATH"
+# Titan nodes have messed-up paths that differ from login node, so we also need to set LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
+
 ```
-Install python
+Install YANK and its dependencies
 ```bash
 # Go to new home
-cd $HOME
 # Install Python 3.x miniconda 
 # TODO: Should we do this in shared path $MEMBERWORK/$PROJECT instead of new HOME?
 wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
-export MINICONDA3="$HOME/miniconda3"
 aprun -n1 bash miniconda3.sh -b -p miniconda3
 # Set LD_LIBRARY_PATH because paths are otherwise messed up
-export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
 # Add path
 # WARNING: This path may need to be edited based on the PREFIX printed above
-export PATH="$MINICONDA3/bin:$PATH"
 conda config --add channels omnia --add channels conda-forge
 conda config --add channels omnia/label/dev
 conda update --yes --all
@@ -81,10 +84,35 @@ conda remove --yes glib
 conda install --no-deps --yes yank
 # MANUAL STEP: Edit parmed installation to reflect this change: https://github.com/ParmEd/ParmEd/pull/957
 # $MINICONDA/lib/python3.6/site-packages/parmed/gromacs/gromacstop.py
-# Install the OpenEye toolkits
-# MANUAL STEP: Make sure you have the OpenEye license installed in $OE_LICENSE
-export OE_LICENSE="$HOME/oe_license.txt"
-pip install -i https://pypi.anaconda.org/OpenEye/simple OpenEye-toolkits
 # Test YANK
 aprun -n 1 yank selftest
+```
+Grab the mutants
+```
+git clone https://github.com/choderalab/kinase-resistance-mutants
+cd kinase-resistance-mutants/hauser-abl-benchmark/input_files
+```
+Here's a TITAN run batch script for 16 nodes for 1 hour:
+```bash
+#!/bin/bash
+#    Begin PBS directives
+#PBS -A chm126
+#PBS -N yank-imatinib
+#PBS -j oe
+#PBS -l walltime=1:00:00,nodes=16
+#PBS -l gres=atlas1%atlas2
+#PBS -l feature=gpudefault
+#    End PBS directives and begin shell commands
+# MANUAL STEP: Change the path to the output of your `pwd`
+export HOME=/lustre/atlas/scratch/jchodera1/chm126
+export MINICONDA3="$HOME/miniconda3"
+export PATH="$MINICONDA3/bin:$PATH"
+export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
+date
+cd $HOME/kinase-resistance-mutants/hauser-abl-benchmark/input_files
+aprun -n 16 yank script --yaml=bosutinib.yaml
+```
+Here's the modified YANK input file:
+```YAML
+
 ```
