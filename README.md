@@ -61,7 +61,7 @@ cd $HOME
 # Install Python 3.x miniconda 
 # TODO: Should we do this in shared path $MEMBERWORK/$PROJECT instead of new HOME?
 wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
-export MINICONDA3="$MEMBERWORK/$PROJECT/miniconda3"
+export MINICONDA3="$HOME/miniconda3"
 aprun -n1 bash miniconda3.sh -b -p miniconda3
 # Set LD_LIBRARY_PATH because paths are otherwise messed up
 export LD_LIBRARY_PATH=$HOME/miniconda3/lib:$LD_LIBRARY_PATH
