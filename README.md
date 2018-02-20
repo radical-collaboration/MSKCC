@@ -43,7 +43,7 @@ Note that `$HOME` may not be available on the compute nodes. We will have to fig
 export PROJECT="chm126"
 
 # Start an interactive test run
-qsub -I -A $PROJECT -l nodes=1,walltime=00:30:00 -lgres=atlas1 -q debug
+qsub -I -A $PROJECT -l nodes=1,walltime=00:30:00 -lfeature=gpudefault -lgres=atlas1 -q debug
 # Figure out where jobs actually launch
 aprun -n1 pwd
 ```
