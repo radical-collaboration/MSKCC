@@ -56,13 +56,26 @@ cd `whoami`
 wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
 bash miniconda3.sh -b -p miniconda3
 ```
-Set the miniconda paths
+Set the miniconda paths, switch to gnu module environment, and enable CUDA module
 ```bash
+# Set paths
 export PROJECT="chm126"
-export MINICONDA3="$PROJWORK/$PROJECT/yank/`whoami`/miniconda3"
+export USERNAME="`whoami`"
+export SOFTWARE="$PROJWORK/$PROJECT/yank/$USERNAME"
+export MINICONDA3="$SOFTWARE/miniconda3"
 export PATH="$MINICONDA3/bin:$PATH"
 # Titan nodes have messed-up paths that differ from login node, so we also need to set LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$MINICONDA3/lib:$LD_LIBRARY_PATH"
+export SCRATCH="/lustre/atlas/scratch/$USERNAME/$PROJECT/"
+
+# Switch to gnu module environment
+module remove PrgEnv-pgi
+module add PrgEnv-gnu
+module add cray-mpich
+
+# Configure CUDA
+module load cudatoolkit
+export OPENMM_CUDA_COMPILER=`which nvcc`
 ```
 Install YANK and its dependencies
 ```bash
@@ -74,45 +87,100 @@ conda config --add channels omnia/label/dev
 conda update --yes --all
 # Install yank
 conda install --yes yank
-# Remove glib (since it breaks `aprun`), openmm (so we can install a CUDA 7.5 version) and mpi4py (which must be specially compiled for titan)
-conda remove --yes --force glib openmm mpi4py
-conda install --yes --no-deps openmm-cuda75 mpi4py-titan
-# Test YANK
+# Remove openmm and install a CUDA 7.5 version
+conda remove --yes --force openmm 
+conda install --yes --no-deps openmm-cuda75
+# Test YANK to make sure CUDA platform is available
+# Note that nvidia-smi will not be available---that is normal and will trigger a warning that is expected
 aprun -n 1 yank selftest
 ```
-Grab the mutants
+Configure and build custom mpi4py
+```bash
+# Remove mpi4py and install special version for titan
+# Make sure to remove glib, since it breaks `aprun`
+conda remove --yes --force glib mpi mpich mpi4py
+
+# Build and install special mpi4py for titan
+cd $SOFTWARE
+wget https://bitbucket.org/mpi4py/mpi4py/downloads/mpi4py-3.0.0.tar.gz -O mpi4py-3.0.0.tar.gz
+tar zxf mpi4py-3.0.0.tar.gz
+cd mpi4py-3.0.0
+
+cat >> mpi.cfg <<EOF
+[cray]
+mpi_dir              = /opt/cray/mpt/7.6.3/gni/mpich-gnu/4.9/
+mpicc                = cc
+mpicxx               = CC
+extra_link_args      = -shared
+include_dirs         = %(mpi_dir)s/include
+libraries            = mpich
+library_dirs         = %(mpi_dir)s/lib/shared:%(mpi_dir)s/lib
+runtime_library_dirs = %(mpi_dir)s/lib/shared
+EOF
+
+python setup.py build --mpi=cray
+python setup.py install
+```
+Grab the mutants data
 ```
 git clone https://github.com/choderalab/kinase-resistance-mutants
 cd kinase-resistance-mutants/hauser-abl-benchmark/input_files
 ```
-Here's a TITAN run batch script for 16 nodes for 1 hour:
+Here's a TITAN run batch script for 8 nodes for 1 hour:
 ```bash
 #!/bin/bash
 #    Begin PBS directives
+#
+# Account to charge: our project number
 #PBS -A chm126
+#
+# Set job name
 #PBS -N yank
+#
+# Capture output and error
 #PBS -j oe
-#PBS -l walltime=1:00:00,nodes=16
+#
+# Set walltime and number of nodes
+# Runtime limit is based on number of nodes requested:
+# https://www.olcf.ornl.gov/for-users/system-user-guides/titan/running-jobs/#titan-scheduling-policy
+# Jobs can be chained so that the next job starts when the first one terminates.
+#PBS -l walltime=01:00:00,nodes=8
+#
+# Use atlas scratch storage
 #PBS -l gres=atlas1%atlas2
+#
+# Start GPUs in shared mode for YANK to work
 #PBS -l feature=gpudefault
+#
 #    End PBS directives and begin shell commands
 
 # Set paths
 export PROJECT="chm126"
 export USERNAME="`whoami`"
-export MINICONDA3="$PROJWORK/$PROJECT/yank/$USERNAME/miniconda3"
+export SOFTWARE="$PROJWORK/$PROJECT/yank/$USERNAME"
+export MINICONDA3="$SOFTWARE/miniconda3"
 export PATH="$MINICONDA3/bin:$PATH"
 # Titan nodes have messed-up paths that differ from login node, so we also need to set LD_LIBRARY_PATH
 export LD_LIBRARY_PATH="$MINICONDA3/lib:$LD_LIBRARY_PATH"
 export SCRATCH="/lustre/atlas/scratch/$USERNAME/$PROJECT/"
 
-# Print date
-date
+# Configure CUDA
+module load cudatoolkit
+export OPENMM_CUDA_COMPILER=`which nvcc`
+echo $OPENMM_CUDA_COMPILER
 
-# Change to working directory
-cd $SCRATCH/kinase-resistance-mutants/hauser-abl-benchmark/yank
+# Set up mpi environment
+module remove PrgEnv-pgi
+module add PrgEnv-gnu
+module add cray-mpich
 
-# Specify only one job per node (but allow all 16 threads to be used by OpenMM) with -N 1 -d 16
+# Set the OpenEye license, but not all the openeye tools work here
+export OE_LICENSE="$SOFTWARE/openeye/oe_license.txt"
+
+# Change directory to working directory
+cd $SCRATCH/yank-examples/examples/hydration/freesolv
+
+# Run YANK, one MPI process per node
 aprun -n $PBS_NUM_NODES -N 1 -d 16 yank script --yaml=sams.yaml
 ```
 Here's the modified YANK input file:
