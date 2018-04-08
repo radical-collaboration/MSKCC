@@ -45,45 +45,38 @@ Note that `$HOME` may not be available on the compute nodes. We will have to fig
 export PROJECT="chm126"
 
 # Start an interactive test run
-qsub -I -A $PROJECT -l nodes=1,walltime=00:30:00 -lfeature=gpudefault -lgres=atlas1 -q debug
-# Figure out where jobs actually launch
-aprun -n1 pwd
+qsub -I -A $PROJECT -l nodes=1,walltime=01:00:00 -lfeature=gpudefault -lgres=atlas1 -q debug
 ```
-Use the output of `pwd` to set `$HOME`:
+Create your YANK project software working directory and install miniconda
 ```bash
-# MANUAL STEP: Change the path to the output of your `pwd`
-export HOME=/lustre/atlas/scratch/jchodera1/chm126
-cd $HOME
-# Other environment variables we will need
-export MINICONDA3="$HOME/miniconda3"
+export PROJDIR="$PROJWORK/$PROJECT/"
+cd $PROJDIR/yank
+mkdir `whoami`
+cd `whoami`
+wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
+bash miniconda3.sh -b -p miniconda3
+```
+Set the miniconda paths
+```bash
+export PROJECT="chm126"
+export MINICONDA3="$PROJWORK/$PROJECT/yank/`whoami`/miniconda3"
 export PATH="$MINICONDA3/bin:$PATH"
 # Titan nodes have messed-up paths that differ from login node, so we also need to set LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
-
 ```
 Install YANK and its dependencies
 ```bash
-# Go to new home
-# Install Python 3.x miniconda 
-# TODO: Should we do this in shared path $MEMBERWORK/$PROJECT instead of new HOME?
-wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
-aprun -n1 bash miniconda3.sh -b -p miniconda3
 # Set LD_LIBRARY_PATH because paths are otherwise messed up
 # Add path
 # WARNING: This path may need to be edited based on the PREFIX printed above
 conda config --add channels omnia --add channels conda-forge
 conda config --add channels omnia/label/dev
 conda update --yes --all
-# Install latest OpenMM from dev channel
-conda install --yes openmm
 # Install yank
 conda install --yes yank
-# Remove glib (and things that depend on it), since it breaks `aprun`
-conda remove --yes glib
-# Force reinstall YANK without reinstalling glib
-conda install --no-deps --yes yank
-# MANUAL STEP: Edit parmed installation to reflect this change: https://github.com/ParmEd/ParmEd/pull/957
-# $MINICONDA/lib/python3.6/site-packages/parmed/gromacs/gromacstop.py
+# Remove glib (since it breaks `aprun`), openmm (so we can install a CUDA 7.5 version) and mpi4py (which must be specially compiled for titan)
+conda remove --yes --force glib openmm mpi4py
+conda install --yes --no-deps openmm-cuda75 mpi4py-titan
 # Test YANK
 aprun -n 1 yank selftest
 ```
@@ -97,21 +90,30 @@ Here's a TITAN run batch script for 16 nodes for 1 hour:
 #!/bin/bash
 #    Begin PBS directives
 #PBS -A chm126
-#PBS -N yank-imatinib
+#PBS -N yank
 #PBS -j oe
 #PBS -l walltime=1:00:00,nodes=16
 #PBS -l gres=atlas1%atlas2
 #PBS -l feature=gpudefault
 #    End PBS directives and begin shell commands
-# MANUAL STEP: Change the path to the output of your `pwd`
-export HOME=/lustre/atlas/scratch/jchodera1/chm126
-export MINICONDA3="$HOME/miniconda3"
+
+# Set paths
+export PROJECT="chm126"
+export USERNAME="`whoami`"
+export MINICONDA3="$PROJWORK/$PROJECT/yank/$USERNAME/miniconda3"
 export PATH="$MINICONDA3/bin:$PATH"
-export LD_LIBRARY_PATH=$MINICONDA3/lib:$LD_LIBRARY_PATH
+# Titan nodes have messed-up paths that differ from login node, so we also need to set LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$MINICONDA3/lib:$LD_LIBRARY_PATH"
+export SCRATCH="/lustre/atlas/scratch/$USERNAME/$PROJECT/"
+
+# Print date
 date
-cd $HOME/kinase-resistance-mutants/hauser-abl-benchmark/input_files
-# Specify only one job per node with -j 1
-aprun -n $PBS_NUM_NODES -j 1 yank script --yaml=imatinib.yaml
+
+# Change to working directory
+cd $SCRATCH/kinase-resistance-mutants/hauser-abl-benchmark/yank
+
+# Specify only one job per node (but allow all 16 threads to be used by OpenMM) with -N 1 -d 16
+aprun -n $PBS_NUM_NODES -N 1 -d 16 yank script --yaml=sams.yaml
 ```
 Here's the modified YANK input file:
 ```YAML
